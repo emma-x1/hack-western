@@ -1,8 +1,10 @@
-sounddevice
-soundfile
 typer
 python-dotenv
 elevenlabs
 google-generativeai
-SpeechRecognition
-pyaudio
+fastapi
+uvicorn
+python-multipart
+requests
+soundfile
+numpy

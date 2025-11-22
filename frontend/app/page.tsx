@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, RotateCcw, Mic } from "lucide-react";
+import { Play, RotateCcw, Mic, Send } from "lucide-react";
 
 // --- Types ---
 type Personality = "angry" | "happy" | "sad" | "smart" | "silly";
@@ -17,10 +17,11 @@ interface Duck {
 interface Speech {
   duckId: number;
   text: string;
-  duration: number; // roughly how long to show this text in ms
+  duration: number;
+  audioUrl: string;
 }
 
-// --- Dummy Data ---
+// --- Data ---
 const DUCKS: Duck[] = [
   { id: 1, name: "Gordon", personality: "angry", color: "bg-red-400", secondaryColor: "border-red-600" },
   { id: 2, name: "Joy", personality: "happy", color: "bg-yellow-300", secondaryColor: "border-yellow-500" },
@@ -29,36 +30,58 @@ const DUCKS: Duck[] = [
   { id: 5, name: "Goose", personality: "silly", color: "bg-orange-400", secondaryColor: "border-orange-600" },
 ];
 
-const CONVERSATION: Speech[] = [
-  { duckId: 2, text: "Guys! Guys! Look at this beautiful day! Isn't it just AMAZING to be a duck?", duration: 3000 },
-  { duckId: 3, text: "It's okay... I guess. But the water is kinda cold today...", duration: 3000 },
-  { duckId: 1, text: "COLD?! YOU CALL THIS COLD? IT'S RAW! THE WATER IS RAW!!", duration: 3000 },
-  { duckId: 4, text: "Actually, technically speaking, water cannot be 'raw'. It is a compound of hydrogen and oxygen.", duration: 4000 },
-  { duckId: 5, text: "HONK! I found a spoon!", duration: 2000 },
-  { duckId: 1, text: "PUT THAT SPOON DOWN! YOU DON'T KNOW WHERE IT'S BEEN!", duration: 2500 },
-  { duckId: 2, text: "Aww, maybe he wants to make a soup! Let's all make soup together!", duration: 3000 },
-  { duckId: 3, text: "Soup makes me sad. It reminds me of vegetables that passed away...", duration: 3500 },
-  { duckId: 4, text: "Vegetables don't have consciousness, Blues. They are merely cellulose and nutrients.", duration: 3500 },
-  { duckId: 5, text: "I AM THE SOUP KING! BOW BEFORE THE SPOON!", duration: 2500 },
-  { duckId: 1, text: "THIS CONVERSATION IS A DISASTER! ABSOLUTE DISASTER!", duration: 3000 },
-];
+const BACKEND_URL = "http://localhost:8000";
 
 export default function Home() {
+  const [conversation, setConversation] = useState<Speech[]>([]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(-1); // -1 means not started
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(-1);
   const [displayedText, setDisplayedText] = useState("");
+  const [topic, setTopic] = useState("Why is the pond water so cold?");
   
-  // Timer ref to handle conversation pacing
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  // Refs
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const startConversation = () => {
-    setIsPlaying(true);
-    setCurrentIndex(0);
+  const startConversation = async () => {
+    if (!topic.trim()) return;
+    
+    setIsLoading(true);
+    setConversation([]); // clear old
     setDisplayedText("");
+    
+    try {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: topic }),
+      });
+      
+      if (!res.ok) throw new Error("Failed to fetch debate");
+      
+      const data = await res.json();
+      // Fix audio URLs to be absolute
+      const speeches = data.speeches.map((s: any) => ({
+        ...s,
+        audioUrl: s.audioUrl.startsWith("http") ? s.audioUrl : `${BACKEND_URL}${s.audioUrl}`
+      }));
+      
+      setConversation(speeches);
+      setIsLoading(false);
+      setIsPlaying(true);
+      setCurrentIndex(0);
+    } catch (e) {
+      console.error(e);
+      setIsLoading(false);
+      setDisplayedText("Error: Could not summon the ducks. Is the backend running?");
+    }
   };
 
-  const resetConversation = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
+  const stopConversation = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     setIsPlaying(false);
     setCurrentIndex(-1);
     setDisplayedText("");
@@ -67,27 +90,46 @@ export default function Home() {
   useEffect(() => {
     if (!isPlaying || currentIndex < 0) return;
 
-    if (currentIndex >= CONVERSATION.length) {
+    if (currentIndex >= conversation.length) {
       setIsPlaying(false);
+      setCurrentIndex(-1); // Reset
       return;
     }
 
-    const currentSpeech = CONVERSATION[currentIndex];
+    const currentSpeech = conversation[currentIndex];
     setDisplayedText(currentSpeech.text);
 
-    // Advance to next speech after duration
-    timerRef.current = setTimeout(() => {
+    // Play Audio
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+    
+    const audio = new Audio(currentSpeech.audioUrl);
+    audioRef.current = audio;
+    
+    // Fallback timeout if audio fails or takes too long? 
+    // Ideally we rely on 'ended' event
+    const handleEnded = () => {
       setCurrentIndex((prev) => prev + 1);
-    }, currentSpeech.duration);
+    };
+    
+    audio.addEventListener('ended', handleEnded);
+    
+    audio.play().catch(err => {
+      console.error("Audio play failed", err);
+      // If audio fails, fallback to timer
+      setTimeout(handleEnded, currentSpeech.duration);
+    });
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      audio.removeEventListener('ended', handleEnded);
+      audio.pause();
     };
-  }, [currentIndex, isPlaying]);
+  }, [currentIndex, isPlaying, conversation]);
 
   // Helper to get current active duck
-  const activeDuckId = currentIndex >= 0 && currentIndex < CONVERSATION.length 
-    ? CONVERSATION[currentIndex].duckId 
+  const activeDuckId = currentIndex >= 0 && currentIndex < conversation.length 
+    ? conversation[currentIndex].duckId 
     : null;
 
   const activeDuck = DUCKS.find(d => d.id === activeDuckId);
@@ -100,7 +142,7 @@ export default function Home() {
       <div className="fixed bottom-0 right-0 w-48 h-40 bg-green-400 rounded-tl-full z-0 opacity-80" />
       <div className="fixed bottom-0 right-32 w-24 h-24 bg-green-500 rounded-t-full z-0 opacity-80" />
       
-      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 gap-12">
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 gap-8">
         
         {/* Header */}
         <div className="text-center space-y-2">
@@ -109,7 +151,7 @@ export default function Home() {
         </div>
 
         {/* Ducks Container */}
-        <div className="flex flex-wrap justify-center gap-8 md:gap-12 items-end h-40">
+        <div className="flex flex-wrap justify-center gap-8 md:gap-12 items-end h-40 mb-8">
           {DUCKS.map((duck) => {
             const isActive = duck.id === activeDuckId;
             return (
@@ -117,7 +159,7 @@ export default function Home() {
                 key={duck.id}
                 className={`
                   relative transition-all duration-500 ease-in-out flex flex-col items-center
-                  ${isActive ? "scale-125 -translate-y-4" : "scale-100 opacity-70 grayscale-[0.3] hover:grayscale-0 hover:opacity-100"}
+                  ${isActive ? "scale-125 -translate-y-4 z-20" : "scale-100 opacity-70 grayscale-[0.3] hover:grayscale-0 hover:opacity-100"}
                 `}
               >
                 {/* Speech Bubble Arrow if active */}
@@ -151,6 +193,30 @@ export default function Home() {
           })}
         </div>
 
+        {/* Topic Input - Only show if not playing */}
+        {!isPlaying && (
+          <div className="w-full max-w-md flex gap-2">
+            <input
+              type="text"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="What should they discuss?"
+              className="flex-1 px-4 py-3 rounded-full border-2 border-teal-200 focus:border-teal-500 focus:outline-none shadow-sm"
+            />
+            <button 
+              onClick={startConversation}
+              disabled={isLoading}
+              className="p-3 bg-teal-600 text-white rounded-full hover:bg-teal-700 disabled:opacity-50 transition-colors"
+            >
+              {isLoading ? (
+                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Send size={20} />
+              )}
+            </button>
+          </div>
+        )}
+
         {/* Conversation Area */}
         <div className="w-full max-w-2xl min-h-[200px] flex flex-col items-center justify-center text-center p-8 bg-white/60 backdrop-blur-md rounded-3xl shadow-xl border-2 border-white">
           {isPlaying && activeDuck ? (
@@ -164,33 +230,23 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-gray-400 italic">
-              {currentIndex === -1 ? "Press start to eavesdrop on the ducks..." : "Conversation ended."}
+              {isLoading 
+                ? "The ducks are gathering their thoughts... (Generating Audio)" 
+                : (currentIndex === -1 ? "Enter a topic above to start." : "Conversation ended.")}
             </div>
           )}
         </div>
 
         {/* Controls */}
-        <div className="flex gap-4">
-          {!isPlaying && (
-            <button 
-              onClick={startConversation}
-              className="flex items-center gap-2 px-8 py-4 bg-teal-600 hover:bg-teal-700 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-95"
-            >
-              <Play size={24} fill="currentColor" />
-              {currentIndex === -1 ? "Start Conversation" : "Replay"}
-            </button>
-          )}
-          
-          {isPlaying && (
-             <button 
-             onClick={resetConversation}
-             className="flex items-center gap-2 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-95"
-           >
-             <RotateCcw size={24} />
-             Stop
-           </button>
-          )}
-        </div>
+        {isPlaying && (
+          <button 
+            onClick={stopConversation}
+            className="flex items-center gap-2 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-bold text-lg shadow-lg hover:shadow-xl transition-all active:scale-95"
+          >
+            <RotateCcw size={24} />
+            Stop
+          </button>
+        )}
       </main>
     </div>
   );
