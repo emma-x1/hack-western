@@ -1,4 +1,6 @@
+.venv/
 venv/
+.env
 __pycache__/
 *.pyc
 *.pyo
@@ -9,8 +11,6 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-.env
 .DS_Store
 runs/
 *.mp3
-

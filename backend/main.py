@@ -40,4 +40,5 @@ async def chat_endpoint(request: ChatRequest):
 
 @app.get("/")
 def root():
-    return {"status": "The Quack Council is in session. Backend is ready."}
+    return {"message": "Hi Sophia Cloudfare is working"}
+
