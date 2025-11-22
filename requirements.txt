@@ -4,3 +4,5 @@ typer
 python-dotenv
 elevenlabs
 google-generativeai
+SpeechRecognition
+pyaudio
