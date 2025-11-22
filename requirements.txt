@@ -1,0 +1,6 @@
+sounddevice
+soundfile
+typer
+python-dotenv
+elevenlabs
+google-generativeai
