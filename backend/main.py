@@ -2,12 +2,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from orchestrator import run_debate
+from orchestrator import run_debate, reset_history, run_single_turn
 import os
 
 app = FastAPI()
 
-# CORS - Allow all for development/hackathon ease
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -16,29 +16,52 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Static files for audio serving
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class ChatRequest(BaseModel):
     message: str
+    user_name: str = "User" 
+    mode: str = "chat" # "chat" or "debug"
+
+class DuckChatRequest(BaseModel):
+    duck_id: int
+    user_name: str = "User"
 
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
     """
-    Starts a debate among the ducks about the provided message/topic.
-    Returns a list of speech objects with audio URLs.
+    Continues the conversation (group debate).
+    The backend maintains memory of previous turns.
     """
     try:
-        print(f"Received topic: {request.message}")
-        # Generate the conversation (this might take a few seconds)
-        speeches = run_debate(request.message, turns=6)
+        print(f"Request: mode={request.mode}, user={request.user_name}, msg={request.message}")
+        speeches = run_debate(request.message, request.user_name, turns=4, mode=request.mode)
         return {"speeches": speeches}
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/chat/duck")
+async def duck_chat_endpoint(request: DuckChatRequest):
+    """
+    Triggers a specific duck to speak based on the current context.
+    """
+    try:
+        print(f"Single duck request: duck_id={request.duck_id}, user={request.user_name}")
+        # We don't need a new message from user, just a trigger for the duck to speak next
+        speeches = run_single_turn(request.duck_id, request.user_name)
+        return {"speeches": speeches}
+    except Exception as e:
+        print(f"Error in duck chat endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/reset")
+async def reset_endpoint():
+    """Clears conversation memory."""
+    reset_history()
+    return {"status": "Memory wiped. The ducks have forgotten everything."}
+
 @app.get("/")
 def root():
-    return {"message": "Hi Sophia Cloudfare is working"}
-
+    return {"status": "The Quack Council is in session."}
