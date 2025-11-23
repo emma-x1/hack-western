@@ -57,6 +57,8 @@ def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode:
     Simulates a debate turn.
     Returns a list of speech objects.
     """
+    
+    print(f"starting run_debate with params: {user_message}", {user_name}, {turns}, {mode})
     ts = time.strftime("%Y%m%d-%H%M%S")
     static_dir = Path("static/audio") / ts
     static_dir.mkdir(parents=True, exist_ok=True)

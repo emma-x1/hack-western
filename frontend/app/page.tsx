@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Play, RotateCcw, Mic, Send, Settings, MessageCircle, Terminal, Bug, Code, Trash2, ChevronLeft, HelpCircle, Heart } from "lucide-react";
+import { useAudioRecorder } from "./hooks/useAudioRecorder";
 
 // --- Types ---
 type Personality = "angry" | "happy" | "sad" | "smart" | "silly";
@@ -49,10 +50,16 @@ export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(-1);
   const [displayedText, setDisplayedText] = useState("");
   const [message, setMessage] = useState("");
-  const [userName, setUserName] = useState("Benny");
+  const [userName, setUserName] = useState("");
   const [turnCount, setTurnCount] = useState(4); 
   const [healthMode, setHealthMode] = useState(false);
   const [vitals, setVitals] = useState<Vitals | null>(null);
+  
+  const { isRecording, startRecording, stopRecording } = useAudioRecorder({
+    onAudioRecorded: (audioBlob: Blob) => {
+      startAudioConversation(audioBlob);
+    },
+  });
   
   // Refs
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -94,7 +101,7 @@ export default function Home() {
     setDisplayedText("");
     
     try {
-      const res = await fetch(`${BACKEND_URL}/chat`, {
+      const res = await fetch(`${BACKEND_URL}/chat-text`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -125,40 +132,52 @@ export default function Home() {
     }
   };
 
-  // Triggers a single duck to speak
-  const pokeDuck = async (duckId: number) => {
-    if (isPlaying || isLoading) return;
-
+  const startAudioConversation = async (audioBlob: Blob) => {
+    if (!audioBlob) return;
+    
     setIsLoading(true);
-    setConversation([]); 
+    setConversation([]); // clear old
     setDisplayedText("");
     
     try {
-      const res = await fetch(`${BACKEND_URL}/chat/duck`, {
+      console.log(audioBlob)
+
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "audio.webm");
+      formData.append("user_name", userName);
+      formData.append("mode", mode === "landing" ? "chat" : mode);
+      formData.append("turns", turnCount.toString());
+
+
+      const res = await fetch(`${BACKEND_URL}/chat-audio`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          duck_id: duckId,
-          user_name: userName
-        }),
+        body: formData,
       });
       
-      if (!res.ok) throw new Error("Failed to poke duck");
+      if (!res.ok) throw new Error("Failed to fetch debate");
       
       const data = await res.json();
-      const speeches = data.speeches.map((s: any) => ({
+      const { speeches, transcription } = data;
+      
+      console.log("allSpeeches:", speeches);
+      console.log("Transcription:", transcription);
+    
+
+      // Fix audio URLs to be absolute
+      const convo = speeches.map((s: any) => ({
         ...s,
         audioUrl: s.audioUrl.startsWith("http") ? s.audioUrl : `${BACKEND_URL}${s.audioUrl}`
       }));
       
-      setConversation(speeches);
+      setMessage("");
+      setConversation(convo);
       setIsLoading(false);
       setIsPlaying(true);
       setCurrentIndex(0);
     } catch (e) {
       console.error(e);
       setIsLoading(false);
-      setDisplayedText("Error: Duck is shy (backend error).");
+      setDisplayedText("Error: Could not summon the ducks. Is the backend running?");
     }
   };
 
@@ -520,11 +539,15 @@ export default function Home() {
              <Trash2 size={20} />
            </button>
         </div>
-
+        
         <div className="text-center space-y-2 mt-8">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-amber-900">
-            Talking with {userName}
-          </h1>
+          {userName && (
+          <>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-amber-900">
+              Talking with {userName}
+            </h1>
+          </>
+           )}
           <p className="text-amber-700/80 font-medium">
             Take a deep breath. We're listening.
           </p>
@@ -601,7 +624,7 @@ export default function Home() {
           <div className="absolute bottom-6 right-8 text-6xl text-amber-100 font-serif opacity-50 pointer-events-none rotate-180">“</div>
         </div>
 
-        {/* Input Area */}
+        {/* Input Area - Text */}
         {!isPlaying && (
           <div className="w-full max-w-md flex flex-col gap-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
             <div className="flex gap-2 bg-white p-2 pr-3 rounded-full shadow-lg border border-amber-50 focus-within:ring-4 focus-within:ring-amber-100 transition-all">
@@ -622,6 +645,26 @@ export default function Home() {
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <Send size={20} className="ml-0.5" />
+                )}
+              </button>
+
+              <button 
+                onClick={async () => {
+                  if (isRecording) {
+                    stopRecording();
+                  } else {
+                    startRecording();
+                  }
+                }}
+                disabled={isLoading}
+                className={`p-3 ${
+                  isRecording ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
+                } text-white rounded-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 shadow-md`}
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Mic size={20} className="ml-0.5" />
                 )}
               </button>
             </div>

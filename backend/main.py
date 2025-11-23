@@ -1,9 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, Form, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from orchestrator import run_debate, reset_history, run_single_turn
 import os
+import random
+from stt import stt
 
 app = FastAPI()
 
@@ -46,8 +48,25 @@ async def chat_endpoint(request: ChatRequest):
         # Inject vitals context if they are recent/relevant? 
         # For now just standard chat, but we could append vitals to history if we wanted ducks to react to it.
         print(f"Request: mode={request.mode}, user={request.user_name}, msg={request.message}")
-        speeches = run_debate(request.message, request.user_name, turns=4, mode=request.mode)
+        speeches = run_debate(request.message, request.user_name, turns=int(5*random.random())+1, mode=request.mode)
         return {"speeches": speeches}
+    except Exception as e:
+        print(f"Error in chat endpoint: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/chat-audio")
+async def chat_audio_endpoint(
+    audio: UploadFile = File(...),
+    user_name: str = Form(...),
+    mode: str = Form(...),
+    turns: int = Form(...),
+):
+    try:
+        message = stt(audio)
+        print(f"Transcription: {message}")
+        speeches = run_debate(user_message=message, user_name=user_name, turns=int(5*random.random())+1, mode=mode)
+        print(speeches)
+        return {"speeches": speeches, "transcription": message}
     except Exception as e:
         print(f"Error in chat endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
