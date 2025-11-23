@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, RotateCcw, Mic, Send, Settings, MessageCircle, Terminal, Bug, Code, Trash2, ChevronLeft } from "lucide-react";
+import { Play, RotateCcw, Mic, Send, Settings, MessageCircle, Terminal, Bug, Code, Trash2, ChevronLeft, HelpCircle } from "lucide-react";
 import { useAudioRecorder } from "./hooks/useAudioRecorder";
 
 // --- Types ---

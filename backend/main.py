@@ -25,17 +25,12 @@ class ChatRequest(BaseModel):
     message: str
     user_name: str = "User" 
     mode: str = "chat" # "chat" or "debug"
-<<<<<<< HEAD
-    
-@app.post("/chat-text")
-=======
 
 class DuckChatRequest(BaseModel):
     duck_id: int
     user_name: str = "User"
 
 @app.post("/chat")
->>>>>>> b84a9024be1919a908c9ccb62be4168edcedfabe
 async def chat_endpoint(request: ChatRequest):
     """
     Continues the conversation (group debate).
