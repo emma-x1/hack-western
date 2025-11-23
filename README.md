@@ -13,7 +13,7 @@ Whether you are debugging a complex recursive function or just need to vent abou
 ## 🛠️ Tech Stack
 - **Frontend**: Next.js, React, TailwindCSS, Lucide UI
 - **Backend**: FastAPI, Python
-- **AI**: Google Gemini 2.0 Flash (Reasoning/Text Generation)
+- **AI**: Google Gemini 2.5 Flash (Reasoning/Text Generation)
 - **Voice**: ElevenLabs (Text-to-Speech)
 
 ## 🚀 Features

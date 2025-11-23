@@ -1,3 +1,5 @@
+import static_ffmpeg
+static_ffmpeg.add_paths()
 import speech_recognition as sr
 #import sounddevice as sd
 import soundfile as sf
