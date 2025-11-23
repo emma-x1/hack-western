@@ -213,7 +213,7 @@ export default function Home() {
       
       setConversation(speeches);
       setIsLoading(false);
-      setIsPlaying(true);
+    setIsPlaying(true);
       setCurrentIndex(0);
     } catch (e) {
       console.error(e);
@@ -293,7 +293,7 @@ export default function Home() {
 
   // --- Landing Screen ---
   if (mode === "landing") {
-    return (
+  return (
       <div className="min-h-screen bg-[#e0f7fa] text-slate-800 font-sans flex items-center justify-center p-4">
         <div className="max-w-6xl w-full bg-white/90 backdrop-blur-xl rounded-4xl shadow-2xl p-8 md:p-12 border-4 border-teal-100 grid grid-cols-1 md:grid-cols-12 gap-12">
           
@@ -327,7 +327,7 @@ export default function Home() {
              <div className="space-y-3">
                <label className="text-xs font-bold text-teal-800 uppercase tracking-widest pl-2">Select Mode</label>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button 
+          <button
                     onClick={() => setMode("chat")}
                     className="group relative overflow-hidden rounded-2xl bg-white hover:bg-teal-600 p-6 transition-all shadow-sm hover:shadow-xl border-2 border-white hover:border-teal-600 text-left"
                   >
@@ -340,7 +340,7 @@ export default function Home() {
                         <p className="text-xs text-slate-500 group-hover:text-teal-100 mt-1">Venting & Emotional Support</p>
                       </div>
                     </div>
-                  </button>
+          </button>
 
                   <button 
                     onClick={() => setMode("debug")}
@@ -392,6 +392,7 @@ export default function Home() {
     const moodColor = moodColors[mood as keyof typeof moodColors] || moodColors.neutral;
 
     return (
+<<<<<<< HEAD
       <div className="fixed top-24 right-6 z-40 bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-amber-500/30 animate-in slide-in-from-right duration-500 w-48 ring-1 ring-black/50">
         <div className="mb-3 text-center">
          <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${moodColor}`}>
@@ -403,25 +404,30 @@ export default function Home() {
        </div>
         <div className="flex items-center gap-2 mb-3 border-b border-slate-700 pb-2">
             <div className="p-1.5 bg-rose-900/50 text-rose-400 rounded-lg">
+=======
+      <div className="fixed top-24 right-6 z-40 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-rose-100 animate-in slide-in-from-right duration-500 w-48">
+         <div className="flex items-center gap-2 mb-3 border-b border-rose-100 pb-2">
+            <div className="p-1.5 bg-rose-100 text-rose-500 rounded-lg">
+>>>>>>> 2510e61098e0206917e56df1e55695cc970c3b70
               <Heart size={16} className="animate-pulse" fill="currentColor" />
             </div>
-            <span className="text-xs font-bold text-amber-100/90 uppercase tracking-wider">Live Vitals</span>
+            <span className="text-xs font-bold text-rose-900 uppercase tracking-wider">Live Vitals</span>
          </div>
          <div className="space-y-2">
             <div className="flex justify-between items-end">
-               <span className="text-xs text-slate-400">Heart Rate</span>
-               <span className="text-lg font-black text-slate-200">{vitals.heart_rate_bpm.toFixed(0)} <span className="text-xs font-normal text-slate-500">bpm</span></span>
+               <span className="text-xs text-slate-500">Heart Rate</span>
+               <span className="text-lg font-black text-slate-700">{vitals.heart_rate_bpm.toFixed(0)} <span className="text-xs font-normal text-slate-400">bpm</span></span>
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-               <div className="h-full bg-rose-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(244,63,94,0.5)]" style={{ width: `${Math.min(100, (vitals.heart_rate_bpm / 120) * 100)}%` }} />
+            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+               <div className="h-full bg-rose-400 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (vitals.heart_rate_bpm / 120) * 100)}%` }} />
             </div>
             
             <div className="flex justify-between items-end mt-2">
-               <span className="text-xs text-slate-400">Breathing</span>
-               <span className="text-lg font-black text-slate-200">{vitals.breathing_rate_rpm.toFixed(0)} <span className="text-xs font-normal text-slate-500">rpm</span></span>
+               <span className="text-xs text-slate-500">Breathing</span>
+               <span className="text-lg font-black text-slate-700">{vitals.breathing_rate_rpm.toFixed(0)} <span className="text-xs font-normal text-slate-400">rpm</span></span>
             </div>
-            <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-               <div className="h-full bg-teal-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(20,184,166,0.5)]" style={{ width: `${Math.min(100, (vitals.breathing_rate_rpm / 30) * 100)}%` }} />
+            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+               <div className="h-full bg-teal-400 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (vitals.breathing_rate_rpm / 30) * 100)}%` }} />
             </div>
          </div>
       </div>
@@ -566,32 +572,44 @@ export default function Home() {
   }
 
   // --- Chat Mode (Therapy Theme) ---
-  // This section is the "Therapy Chat" mode, which the user requested to look like a stage.
   return (
-    <div className="min-h-screen bg-[#2a1b18] text-amber-100 font-serif selection:bg-red-900 selection:text-white relative overflow-hidden">
+    <div className="min-h-screen bg-[#2c0f0f] text-slate-800 font-sans selection:bg-amber-200 relative overflow-hidden">
       <VitalsOverlay />
       
-      {/* Stage Curtains (CSS pseudo-elements or divs) */}
-      <div className="fixed top-0 left-0 h-full w-32 md:w-48 bg-red-900 shadow-[10px_0_30px_rgba(0,0,0,0.5)] z-10 rounded-br-[100px] transform origin-top-left" />
-      <div className="fixed top-0 right-0 h-full w-32 md:w-48 bg-red-900 shadow-[-10px_0_30px_rgba(0,0,0,0.5)] z-10 rounded-bl-[100px] transform origin-top-right" />
+      {/* Stage Backdrop */}
+      <div className="fixed inset-0 pointer-events-none">
+        {/* Main backdrop - dark burgundy */}
+        <div className="absolute inset-0 bg-linear-to-b from-[#2c0f0f] via-[#3d1412] to-[#5c2b1b]" />
+        
+        {/* Left curtain */}
+        <div className="absolute top-0 left-0 h-full w-32 md:w-48 bg-linear-to-b from-[#7d1f1a] to-[#53130f] shadow-[10px_0_25px_rgba(0,0,0,0.5)] rounded-br-[120px]" />
+        
+        {/* Right curtain */}
+        <div className="absolute top-0 right-0 h-full w-32 md:w-48 bg-linear-to-b from-[#7d1f1a] to-[#53130f] shadow-[-10px_0_25px_rgba(0,0,0,0.5)] rounded-bl-[120px]" />
+        
+        {/* Top valance */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[140%] max-w-[1200px] h-28 bg-linear-to-b from-[#8c221c] to-[#4e0f0f] rounded-b-[50%] shadow-lg" />
+        
+        {/* Sparkles */}
+        <div className="absolute top-32 left-10 text-yellow-300 text-2xl animate-pulse">✦</div>
+        <div className="absolute top-40 right-10 text-yellow-300 text-2xl animate-pulse" style={{animationDelay: '150ms'}}>✦</div>
+        <div className="absolute bottom-36 left-16 text-yellow-300 text-xl animate-pulse" style={{animationDelay: '300ms'}}>✦</div>
+        <div className="absolute bottom-28 right-20 text-yellow-300 text-xl animate-pulse" style={{animationDelay: '500ms'}}>✦</div>
+        
+        {/* Stage floor */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[130%] max-w-[1400px] h-40 bg-linear-to-b from-[#6d3b23] to-[#3f2418] rounded-t-[120px] shadow-[0_-25px_60px_rgba(0,0,0,0.6)]" />
+        
+        {/* Spotlight effect */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120%] h-full bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.18),transparent_55%)]" />
+      </div>
       
-      {/* Stage Top Curtain */}
-      <div className="fixed top-0 left-0 w-full h-24 bg-red-800 shadow-lg z-20 rounded-b-[50%] transform scale-x-150" />
-
-      {/* Gold Accents */}
-      <div className="fixed top-16 left-8 md:left-16 text-yellow-400 z-30 animate-pulse opacity-50">✨</div>
-      <div className="fixed top-24 right-8 md:right-16 text-yellow-400 z-30 animate-pulse opacity-50 delay-75">✨</div>
-
-      {/* Spotlight Effect */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-full bg-[conic-gradient(from_0deg_at_50%_-20%,rgba(255,255,255,0.1)_0deg,transparent_30deg,transparent_330deg,rgba(255,255,255,0.1)_360deg)] pointer-events-none" />
-
-      <main className="relative z-10 flex flex-col items-center justify-end min-h-screen pb-0 pt-24 px-4 gap-4 md:gap-8">
+      <main className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4 gap-8">
         
         {/* Header / Nav */}
         <div className="absolute top-6 left-6 z-50">
           <button 
             onClick={() => setMode("landing")}
-            className="flex items-center gap-2 bg-black/40 backdrop-blur-sm hover:bg-black/60 text-amber-100 font-bold px-4 py-2 rounded-full transition-all border border-amber-900/50"
+            className="flex items-center gap-2 bg-white/60 backdrop-blur-sm hover:bg-white text-amber-900/70 font-bold px-4 py-2 rounded-full transition-all shadow-sm hover:shadow-md"
           >
             <ChevronLeft size={20} />
             Back
@@ -601,33 +619,34 @@ export default function Home() {
         <div className="absolute top-6 right-6 z-50 flex gap-2">
            <button 
               onClick={() => setHealthMode(!healthMode)}
-              className={`p-3 rounded-full transition-colors ${healthMode ? "bg-rose-600 text-white border-2 border-rose-400 shadow-[0_0_15px_rgba(225,29,72,0.5)]" : "bg-amber-900/80 text-amber-100 hover:bg-amber-800 border border-amber-700"}`}
+              className={`p-3 bg-white/60 rounded-full transition-colors ${healthMode ? "text-rose-500 bg-rose-50" : "text-slate-400 hover:bg-white"}`}
               title="Toggle Vitals"
            >
              <Heart size={20} fill={healthMode ? "currentColor" : "none"} />
            </button>
-           <button onClick={resetBackendMemory} title="Clear Session" className="p-3 bg-amber-900/80 hover:bg-red-900 text-amber-100 hover:text-red-200 rounded-full transition-colors border border-amber-700 hover:border-red-700">
+           <button onClick={resetBackendMemory} title="Clear Session" className="p-3 bg-white/60 hover:bg-rose-50 text-rose-400 rounded-full transition-colors">
              <Trash2 size={20} />
            </button>
         </div>
 
-        {/* Title / Marquee */}
-        <div className="text-center space-y-2 mt-4 mb-auto">
-          <h1 className="text-4xl md:text-6xl font-black tracking-tight text-amber-400 drop-shadow-[0_4px_0_rgba(0,0,0,0.5)] uppercase font-sans">
-            The Quack Council
-          </h1>
-          <p className="text-amber-200/60 font-medium tracking-widest uppercase text-sm">
-            Theater Actor
+        <div className="text-center space-y-2 mt-8">
+          {userName && (
+          <>
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight text-yellow-400 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              Talking with {userName}
+            </h1>
+          </>
+           )}
+          <p className="text-yellow-200/90 font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
+            Take a deep breath. We're listening.
           </p>
         </div>
 
-        {/* Ducks Container - On "Stage" Floor */}
-        <div className="flex flex-wrap justify-center gap-6 md:gap-12 items-end mb-8 pb-8 border-b-8 border-[#3e2c20] w-full max-w-5xl relative">
-          {/* Stage Floor background behind ducks */}
-          <div className="absolute bottom-0 w-[120%] left-1/2 -translate-x-1/2 h-32 bg-[#3e2c20] transform perspective-[500px] rotate-x-12 z-[-1] shadow-inner rounded-t-[100px]" />
-
+        {/* Ducks Container - Softer Look */}
+        <div className="flex flex-wrap justify-center gap-6 md:gap-10 items-end h-40 mb-4">
           {DUCKS.map((duck) => {
             const isActive = duck.id === activeDuckId;
+            // Use dynamic mood if active, otherwise static icon
             const displayIcon = (isActive && currentMood) ? currentMood : duck.icon;
 
             return (
@@ -636,30 +655,31 @@ export default function Home() {
                 onClick={() => pokeDuck(duck.id)}
                 disabled={isLoading || isPlaying}
                 className={`
-                  relative transition-all duration-500 ease-out flex flex-col items-center cursor-pointer
-                  ${isActive ? "scale-125 -translate-y-8 z-20 drop-shadow-[0_20px_20px_rgba(255,215,0,0.3)]" : "scale-95 opacity-70 hover:opacity-100 hover:scale-100 hover:-translate-y-2"}
+                  relative transition-all duration-700 ease-out flex flex-col items-center cursor-pointer
+                  ${isActive ? "scale-125 -translate-y-6 z-20" : "scale-95 opacity-60 grayscale-[0.2] hover:grayscale-0 hover:opacity-100 hover:scale-100"}
                 `}
               >
-                {/* Spotlight when active */}
+                {/* Cute Speech Bubble */}
                 {isActive && (
-                   <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-24 h-64 bg-linear-to-b from-yellow-200/20 to-transparent pointer-events-none blur-xl" />
+                  <div className="absolute -top-12 bg-white px-3 py-1 rounded-2xl rounded-bl-none shadow-sm text-xl animate-bounce">
+                    💬
+                  </div>
                 )}
 
                 <div 
                   className={`
-                    w-24 h-24 rounded-full flex items-center justify-center shadow-2xl border-4
+                    w-20 h-20 rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-4
                     ${duck.color} ${duck.secondaryColor}
                     transition-colors duration-300
                   `}
                 >
-                  <span className="text-5xl drop-shadow-md select-none transition-all duration-300">
+                  <span className="text-3xl drop-shadow-sm select-none transition-all duration-300">
                     {displayIcon}
                   </span>
                 </div>
                 
-                {/* Name Plate */}
-                <div className={`mt-4 px-4 py-1 rounded bg-[#1a1a1a] border border-amber-700/50 text-xs font-bold uppercase tracking-widest text-amber-100 shadow-lg
-                  ${isActive ? "ring-2 ring-yellow-500/50 scale-110" : ""}
+                <div className={`mt-3 px-4 py-1 rounded-full text-xs font-bold bg-white/90 shadow-sm backdrop-blur-sm
+                  ${isActive ? "text-amber-900 scale-105 ring-2 ring-amber-100" : "text-slate-400"}
                 `}>
                   {duck.name}
                 </div>
@@ -668,44 +688,47 @@ export default function Home() {
           })}
         </div>
 
-        {/* Conversation / Dialogue Box */}
-        <div className="w-full max-w-3xl min-h-[180px] flex flex-col items-center justify-center text-center p-6 md:p-8 bg-black/60 backdrop-blur-sm rounded-xl border-2 border-amber-700/30 shadow-2xl relative mb-8">
+        {/* Conversation Area - Card Style */}
+        <div className="w-full max-w-2xl min-h-[240px] flex flex-col items-center justify-center text-center p-8 md:p-12 bg-linear-to-br from-amber-50 to-white rounded-[2.5rem] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.4)] border-2 border-yellow-200/50 relative overflow-hidden transition-all duration-500">
+          {/* Decorative Quotes */}
+          <div className="absolute top-6 left-8 text-6xl text-amber-200 font-serif opacity-50 pointer-events-none">"</div>
+          
           {isPlaying && activeDuck ? (
-            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-2xl relative z-10">
-              <div className="text-xs font-bold text-amber-500 uppercase tracking-widest flex items-center justify-center gap-2">
-                 <span className="w-8 h-px bg-amber-500/50"></span>
-                 {activeDuck.personality}
-                 <span className="w-8 h-px bg-amber-500/50"></span>
+            <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 max-w-lg relative z-10">
+              <div className="flex flex-col items-center gap-2">
+                 <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{activeDuck.personality} Response</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-medium text-amber-50 leading-relaxed font-sans">
-                "{displayedText}"
+              <h2 className="text-2xl md:text-3xl font-medium text-slate-800 leading-normal">
+                {displayedText}
               </h2>
             </div>
           ) : (
-            <div className="text-amber-100/30 italic font-serif text-lg">
+            <div className="text-slate-500 italic font-medium">
               {isLoading 
-                ? <div className="flex flex-col items-center gap-3"><div className="w-6 h-6 border-2 border-amber-700 border-t-amber-400 rounded-full animate-spin" /><span>Rehearsing lines...</span></div>
-                : (currentIndex === -1 ? "The stage is set. Break a leg." : "End of scene.")}
+                ? <div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-4 border-amber-300 border-t-amber-600 rounded-full animate-spin" /><span>Consulting the ducks...</span></div>
+                : (currentIndex === -1 ? "Share what's on your mind... (or tap a duck)" : "Conversation paused.")}
             </div>
           )}
+          
+          <div className="absolute bottom-6 right-8 text-6xl text-amber-200 font-serif opacity-50 pointer-events-none rotate-180">"</div>
         </div>
 
-        {/* Input Area - Text & Controls */}
-        <div className="w-full max-w-2xl flex flex-col gap-4 mb-8 sticky bottom-0 pb-4">
-          {!isPlaying ? (
-            <div className="flex gap-2 bg-black/80 p-2 pr-3 rounded-full shadow-2xl border border-amber-900/50 focus-within:ring-2 focus-within:ring-amber-600 transition-all backdrop-blur-md">
+        {/* Input Area - Text */}
+        {!isPlaying && (
+          <div className="w-full max-w-md flex flex-col gap-4 animate-in slide-in-from-bottom-4 fade-in duration-500">
+            <div className="flex gap-2 bg-white/95 backdrop-blur-sm p-2 pr-3 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.3)] border-2 border-yellow-200/60 focus-within:ring-4 focus-within:ring-yellow-300/50 transition-all">
               <input
                 type="text"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Cue the actors..."
-                className="flex-1 px-6 py-3 bg-transparent focus:outline-none text-amber-50 placeholder:text-amber-100/20 font-sans"
+                placeholder="Type here..."
+                className="flex-1 px-6 py-3 bg-transparent focus:outline-none text-slate-700 placeholder:text-slate-400"
                 onKeyDown={(e) => e.key === 'Enter' && startConversation()}
               />
               <button 
                 onClick={() => startConversation()}
                 disabled={isLoading}
-                className="p-3 bg-amber-700 hover:bg-amber-600 text-white rounded-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 shadow-md"
+                className="p-3 bg-amber-500 hover:bg-amber-600 text-white rounded-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 shadow-md"
               >
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -724,7 +747,7 @@ export default function Home() {
                 }}
                 disabled={isLoading}
                 className={`p-3 ${
-                  isRecording ? "bg-red-600 hover:bg-red-500" : "bg-amber-900 hover:bg-amber-800"
+                  isRecording ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"
                 } text-white rounded-full transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:scale-100 shadow-md`}
               >
                 {isLoading ? (
@@ -734,20 +757,20 @@ export default function Home() {
                 )}
               </button>
             </div>
-          ) : (
-            <div className="flex justify-center">
-              <button 
-                onClick={stopConversation}
-                className="flex items-center gap-2 px-8 py-3 bg-red-900/80 hover:bg-red-800 text-white rounded-full font-bold text-lg shadow-xl backdrop-blur-md border border-red-700 transition-all active:scale-95"
-              >
-                <RotateCcw size={20} />
-                Cut Scene
-              </button>
-            </div>
-          )}
-        </div>
-
-      </main>
+          </div>
+        )}
+          
+        {/* Controls */}
+        {isPlaying && (
+          <button 
+            onClick={stopConversation}
+            className="flex items-center gap-2 px-8 py-4 bg-linear-to-r from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white rounded-full font-bold text-lg shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.5)] transition-all active:scale-95"
+          >
+            <RotateCcw size={20} />
+            Pause Session
+          </button>
+      )}
+    </main>
     </div>
   );
 }

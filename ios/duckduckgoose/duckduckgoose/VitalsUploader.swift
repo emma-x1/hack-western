@@ -7,7 +7,7 @@ final class VitalsUploader: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     // configure your backend endpoint
-    private let endpoint = URL(string: "https://hitachi-normally-found-courts.trycloudflare.com/vitals")!
+    private let endpoint = URL(string: "https://regulation-quantum-dynamic-responsible.trycloudflare.com/vitals")!
 
     init() {
         sdk.$metricsBuffer

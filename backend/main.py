@@ -93,7 +93,25 @@ async def vitals_endpoint(request: dict):
 
 @app.get("/vitals")
 async def get_vitals():
-    return latest_vitals
+    if not latest_vitals:
+        return {
+            "timestamp_s": None,
+            "heart_rate_bpm": None,
+            "breathing_rate_rpm": None,
+            "mood": None,
+            "mood_context": "No vitals data available"
+        }
+    
+    from orchestrator import analyze_vitals_state
+    vitals_state = analyze_vitals_state(latest_vitals)
+    
+    return {
+        **latest_vitals, 
+        "mood": vitals_state["state"],
+        "mood_context": vitals_state.get("vitals_context", ""),
+        "excluded_ducks": vitals_state.get("excluded_characters", []),
+        "preferred_ducks": vitals_state.get("preferred_characters", [])
+    }
 
 @app.post("/reset")
 async def reset_endpoint():

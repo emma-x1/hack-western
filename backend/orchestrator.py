@@ -52,7 +52,7 @@ def determine_mood(text: str, base_personality: str) -> str:
     # but better to return null and let frontend fallback.
     return "" 
 
-def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode: str = "chat"):
+def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode: str = "chat", vitals = None):
     """
     Simulates a debate turn.
     Returns a list of speech objects.
@@ -62,6 +62,9 @@ def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode:
     ts = time.strftime("%Y%m%d-%H%M%S")
     static_dir = Path("static/audio") / ts
     static_dir.mkdir(parents=True, exist_ok=True)
+
+    vitals_state = analyze_vitals_state(vitals)
+    print(f"Vitals state: {vitals_state['state']}")
 
     # Initialize History
     session_id = "default" 
@@ -77,14 +80,18 @@ def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode:
 
     if len(history) > 50:
         history = history[-50:]
-    
+
+    if vitals:
+        history.append(f"SYSTEM: {vitals_state['vitals_context']}")
+
     history_text = "CONVERSATION HISTORY:\n" + "\n".join(history)
     
     conversation_log = []
     name_to_id = {"Gordon": 1, "Joy": 2, "Blues": 3, "Dexter": 4, "Goose": 5}
 
-    current_speaker = random.choice(CHARACTERS)
-    
+    current_speaker = select_next_speaker(
+        {"name": ""}, vitals_state 
+    )    
     print(f"Processing message: {user_message} (Mode: {mode})")
 
     for i in range(turns):
@@ -106,9 +113,7 @@ def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode:
         }
         conversation_log.append(turn_data)
         
-        candidates = [c for c in CHARACTERS if c["name"] != current_speaker["name"]]
-        current_speaker = random.choice(candidates)
-
+        current_speaker = select_next_speaker(current_speaker, vitals_state)
     conversations[session_id] = history
 
     # Generate Audio Parallel
@@ -187,6 +192,74 @@ def run_single_turn(duck_id: int, user_name: str = "User"):
         "duration": duration,
         "mood": mood
     }]
+
+def analyze_vitals_state(vitals):
+    """
+    Analyzes vitals and returns emotional state + recommended characters.
+    """
+    if not vitals:
+        return {
+            "state": "neutral",
+            "excluded_characters": [],
+            "preferred_characters": []
+        }
+    
+    hr = vitals.get("heart_rate_bpm", 70)
+    br = vitals.get("breathing_rate_rpm", 15)
+
+    is_stressed = hr > 90 or br > 20
+    is_calm = hr < 70 and 12 <= br <= 18
+    is_excited = hr > 85 and br < 20
+
+    if is_stressed:
+        return {
+            "state": "stressed",
+            "excluded_characters": ["Gordon", "Blues"],  
+            "preferred_characters": ["Joy", "Goose"],     
+            "vitals_context": f"User seems stressed (HR: {hr:.0f} bpm, BR: {br:.0f} rpm)"
+        }
+    elif is_calm:
+        return {
+            "state": "calm",
+            "excluded_characters": [],
+            "preferred_characters": ["Dexter"],
+            "vitals_context": f"User is calm (HR: {hr:.0f} bpm, BR: {br:.0f} rpm)"
+        }
+    elif is_excited:
+        return {
+            "state": "excited",
+            "excluded_characters": ["Blues"],
+            "preferred_characters": ["Joy", "Goose"],
+            "vitals_context": f"User is energized (HR: {hr:.0f} bpm, BR: {br:.0f} rpm)"
+        }
+    else:
+        return {
+            "state": "neutral",
+            "excluded_characters": [],
+            "preferred_characters": [],
+            "vitals_context": f"User vitals normal (HR: {hr:.0f} bpm, BR: {br:.0f} rpm)"
+        }
+
+def select_next_speaker(current_speaker, vitals_state):
+    """
+    Selects next speaker based on vitals state.
+    """
+    excluded = vitals_state.get("excluded_characters", [])
+    preferred = vitals_state.get("preferred_characters", [])
+
+    candidates = [c for c in CHARACTERS 
+                if c["name"] != current_speaker["name"] 
+                and c["name"] not in excluded]
+
+    if not candidates:
+        candidates = [c for c in CHARACTERS if c["name"] != current_speaker["name"]]
+
+    preferred_candidates = [c for c in candidates if c["name"] in preferred]
+
+    if preferred_candidates:
+            return random.choice(preferred_candidates)
+    
+    return random.choice(candidates) if candidates else random.choice(CHARACTERS)
 
 def reset_history():
     conversations["default"] = []
