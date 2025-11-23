@@ -15,6 +15,7 @@ interface Duck {
   color: string;
   secondaryColor: string;
   icon: string;
+  image: string;
 }
 
 interface Speech {
@@ -37,11 +38,11 @@ interface Vitals {
 
 // --- Data ---
 const DUCKS: Duck[] = [
-  { id: 1, name: "Gordon", personality: "angry", color: "bg-red-400", secondaryColor: "border-red-600", icon: "🤬" },
-  { id: 2, name: "Joy", personality: "happy", color: "bg-yellow-300", secondaryColor: "border-yellow-500", icon: "✨" },
-  { id: 3, name: "Blues", personality: "sad", color: "bg-blue-400", secondaryColor: "border-blue-600", icon: "🌧️" },
-  { id: 4, name: "Dexter", personality: "smart", color: "bg-green-400", secondaryColor: "border-green-600", icon: "🤓" },
-  { id: 5, name: "Goose", personality: "silly", color: "bg-orange-400", secondaryColor: "border-orange-600", icon: "🤪" },
+  { id: 1, name: "Gordon", personality: "angry", color: "bg-red-400", secondaryColor: "border-red-600", icon: "🤬", image: "/ducks/gordon.png" },
+  { id: 2, name: "Joy", personality: "happy", color: "bg-yellow-300", secondaryColor: "border-yellow-500", icon: "✨", image: "/ducks/joy.png" },
+  { id: 3, name: "Blues", personality: "sad", color: "bg-blue-400", secondaryColor: "border-blue-600", icon: "🌧️", image: "/ducks/blues.png" },
+  { id: 4, name: "Dexter", personality: "smart", color: "bg-green-400", secondaryColor: "border-green-600", icon: "🤓", image: "/ducks/dexter.png" },
+  { id: 5, name: "Goose", personality: "silly", color: "bg-orange-400", secondaryColor: "border-orange-600", icon: "🤪", image: "/ducks/goose.png" },
 ];
 
 const BACKEND_URL = "http://localhost:8000";
@@ -533,9 +534,19 @@ export default function Home() {
                 <div className="w-full max-w-3xl">
                    {activeDuck ? (
                       <div className="bg-slate-950/80 backdrop-blur-sm border-l-4 border-indigo-500 p-6 rounded-r-xl animate-in fade-in slide-in-from-bottom-4 duration-300">
-                         <div className="flex items-center gap-2 mb-2">
-                            <span className="text-indigo-400 font-bold text-sm">@{activeDuck.name}</span>
-                            <span className="text-slate-600 text-xs">says:</span>
+                         <div className="flex items-center gap-3 mb-4">
+                            {/* Duck Image */}
+                            <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 border-indigo-500/50 shadow-lg bg-slate-800">
+                              <img 
+                                src={activeDuck.image} 
+                                alt={activeDuck.name}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-indigo-400 font-bold text-sm">@{activeDuck.name}</span>
+                              <span className="text-slate-600 text-xs">says:</span>
+                            </div>
                          </div>
                          <p className="text-lg md:text-xl text-slate-200 leading-relaxed font-light">
                             "{displayedText}"
@@ -698,8 +709,19 @@ export default function Home() {
           
           {isPlaying && activeDuck ? (
             <div className="space-y-6 animate-in fade-in zoom-in-95 duration-500 max-w-lg relative z-10">
-              <div className="flex flex-col items-center gap-2">
-                 <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{activeDuck.personality} Response</span>
+              {/* Duck Image with Name */}
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-4 border-amber-300/60 shadow-xl bg-white">
+                  <img 
+                    src={activeDuck.image} 
+                    alt={activeDuck.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-xs font-bold text-amber-600 uppercase tracking-widest">{activeDuck.personality} Response</span>
+                  <span className="text-sm font-black text-amber-800">{activeDuck.name}</span>
+                </div>
               </div>
               <h2 className="text-2xl md:text-3xl font-medium text-slate-800 leading-normal">
                 {displayedText}
