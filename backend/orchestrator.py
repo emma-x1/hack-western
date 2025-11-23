@@ -24,36 +24,33 @@ def get_character_by_id(duck_id):
     name = id_to_name.get(duck_id)
     return get_character_by_name(name)
 
-def _generate_and_save_turn(character, history_text, i=0):
-    """Helper to generate text + audio for a single turn"""
-    ts = time.strftime("%Y%m%d-%H%M%S")
-    static_dir = Path("static/audio") / ts
-    static_dir.mkdir(parents=True, exist_ok=True)
+def determine_mood(text: str, base_personality: str) -> str:
+    """
+    Simple heuristic to determine mood emoji based on text content and personality.
+    Ideally, LLM could output this, but for speed we use keywords.
+    """
+    text_lower = text.lower()
+    
+    # Universal triggers
+    if any(w in text_lower for w in ["love", "happy", "great", "good"]):
+        return "🥰"
+    if any(w in text_lower for w in ["hate", "angry", "mad", "stupid", "idiot"]):
+        return "🤬"
+    if any(w in text_lower for w in ["sad", "cry", "sorry", "blue"]):
+        return "😢"
+    if any(w in text_lower for w in ["?", "hmm", "think", "curious"]):
+        return "🤔"
+    if any(w in text_lower for w in ["wow", "amazing", "omg"]):
+        return "😲"
+    if any(w in text_lower for w in ["haha", "lol", "funny"]):
+        return "😂"
 
-    # 1. Generate Text
-    text = generate_reply(character, history_text)
-    
-    # 2. Generate Audio
-    filename = f"{i}_{character['name']}.wav"
-    out_path = static_dir / filename
-    web_path = f"/static/audio/{ts}/{filename}"
-    
-    # Call TTS (blocking or async, but here we do it inside the helper)
-    # For orchestrator parallelization, we might want to separate this, 
-    # but for single turn it's fine.
-    tts_to_wav(text, character["voice_id"], str(out_path))
-    
-    word_count = len(text.split())
-    duration = max(2000, word_count * 400)
-    
-    return {
-        "duckId": -1, # Needs to be mapped by caller or we import map here
-        "character": character,
-        "text": text,
-        "audioUrl": web_path,
-        "duration": duration,
-        "filename": filename
-    }
+    # Fallback to base personality icon if no strong emotion detected
+    # We don't have easy access to base icon here without passing it, 
+    # so we'll return a generic 'neutral' or the frontend handles it.
+    # Let's return a specific default per personality based on name if possible,
+    # but better to return null and let frontend fallback.
+    return "" 
 
 def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode: str = "chat"):
     """
@@ -95,10 +92,14 @@ def run_debate(user_message: str, user_name: str = "User", turns: int = 3, mode:
         history.append(line)
         history_text += f"\n{line}"
         
+        # Determine transient mood
+        mood = determine_mood(text, current_speaker["style"])
+
         turn_data = {
             "duckId": name_to_id.get(current_speaker["name"], 1),
             "character": current_speaker,
             "text": text,
+            "mood": mood,
             "filename": f"{i}_{current_speaker['name']}.wav"
         }
         conversation_log.append(turn_data)
@@ -160,6 +161,7 @@ def run_single_turn(duck_id: int, user_name: str = "User"):
     static_dir.mkdir(parents=True, exist_ok=True)
     
     text = generate_reply(character, history_text)
+    mood = determine_mood(text, character["style"])
     
     # Update history
     line = f"{character['name']}: {text}"
@@ -180,7 +182,8 @@ def run_single_turn(duck_id: int, user_name: str = "User"):
         "duckId": duck_id,
         "text": text,
         "audioUrl": web_path,
-        "duration": duration
+        "duration": duration,
+        "mood": mood
     }]
 
 def reset_history():

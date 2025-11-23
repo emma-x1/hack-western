@@ -19,6 +19,14 @@ app.add_middleware(
 os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# In-memory storage for vitals
+# Default values
+latest_vitals = {
+    'timestamp_s': 0, 
+    'breathing_rate_rpm': 0, 
+    'heart_rate_bpm': 0
+}
+
 class ChatRequest(BaseModel):
     message: str
     user_name: str = "User" 
@@ -35,6 +43,8 @@ async def chat_endpoint(request: ChatRequest):
     The backend maintains memory of previous turns.
     """
     try:
+        # Inject vitals context if they are recent/relevant? 
+        # For now just standard chat, but we could append vitals to history if we wanted ducks to react to it.
         print(f"Request: mode={request.mode}, user={request.user_name}, msg={request.message}")
         speeches = run_debate(request.message, request.user_name, turns=4, mode=request.mode)
         return {"speeches": speeches}
@@ -49,12 +59,22 @@ async def duck_chat_endpoint(request: DuckChatRequest):
     """
     try:
         print(f"Single duck request: duck_id={request.duck_id}, user={request.user_name}")
-        # We don't need a new message from user, just a trigger for the duck to speak next
         speeches = run_single_turn(request.duck_id, request.user_name)
         return {"speeches": speeches}
     except Exception as e:
         print(f"Error in duck chat endpoint: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/vitals")
+async def vitals_endpoint(request: dict):
+    global latest_vitals
+    print(f"vitals update: {request}")
+    latest_vitals = request
+    return {"status": "Vitals updated."}
+
+@app.get("/vitals")
+async def get_vitals():
+    return latest_vitals
 
 @app.post("/reset")
 async def reset_endpoint():

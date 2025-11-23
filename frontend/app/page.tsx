@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, RotateCcw, Mic, Send, Settings, MessageCircle, Terminal, Bug, Code, Trash2, ChevronLeft, HelpCircle } from "lucide-react";
+import { Play, RotateCcw, Mic, Send, Settings, MessageCircle, Terminal, Bug, Code, Trash2, ChevronLeft, HelpCircle, Heart } from "lucide-react";
 
 // --- Types ---
 type Personality = "angry" | "happy" | "sad" | "smart" | "silly";
@@ -21,6 +21,13 @@ interface Speech {
   text: string;
   duration: number;
   audioUrl: string;
+  mood?: string; // Dynamic emoji mood
+}
+
+interface Vitals {
+  timestamp_s: number;
+  breathing_rate_rpm: number;
+  heart_rate_bpm: number;
 }
 
 // --- Data ---
@@ -43,10 +50,40 @@ export default function Home() {
   const [displayedText, setDisplayedText] = useState("");
   const [message, setMessage] = useState("");
   const [userName, setUserName] = useState("Benny");
-  const [turnCount, setTurnCount] = useState(4); // Config option
+  const [turnCount, setTurnCount] = useState(4); 
+  const [healthMode, setHealthMode] = useState(false);
+  const [vitals, setVitals] = useState<Vitals | null>(null);
   
   // Refs
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const vitalsTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Polling for vitals
+  useEffect(() => {
+    if (healthMode) {
+      const fetchVitals = async () => {
+        try {
+          const res = await fetch(`${BACKEND_URL}/vitals`);
+          if (res.ok) {
+            const data = await res.json();
+            setVitals(data);
+          }
+        } catch (e) {
+          console.error("Failed to fetch vitals", e);
+        }
+      };
+      
+      fetchVitals(); // Initial call
+      vitalsTimerRef.current = setInterval(fetchVitals, 2000); // Poll every 2s
+    } else {
+      if (vitalsTimerRef.current) clearInterval(vitalsTimerRef.current);
+      setVitals(null);
+    }
+
+    return () => {
+      if (vitalsTimerRef.current) clearInterval(vitalsTimerRef.current);
+    };
+  }, [healthMode]);
 
   const startConversation = async (overrideMsg?: string) => {
     const msgToSend = overrideMsg || message;
@@ -71,7 +108,6 @@ export default function Home() {
       if (!res.ok) throw new Error("Failed to fetch debate");
       
       const data = await res.json();
-      // Fix audio URLs to be absolute
       const speeches = data.speeches.map((s: any) => ({
         ...s,
         audioUrl: s.audioUrl.startsWith("http") ? s.audioUrl : `${BACKEND_URL}${s.audioUrl}`
@@ -117,7 +153,7 @@ export default function Home() {
       
       setConversation(speeches);
       setIsLoading(false);
-    setIsPlaying(true);
+      setIsPlaying(true);
       setCurrentIndex(0);
     } catch (e) {
       console.error(e);
@@ -176,7 +212,6 @@ export default function Home() {
     
     audio.play().catch(err => {
       console.error("Audio play failed", err);
-      // If audio fails, fallback to timer
       setTimeout(handleEnded, currentSpeech.duration);
     });
 
@@ -192,10 +227,13 @@ export default function Home() {
     : null;
 
   const activeDuck = DUCKS.find(d => d.id === activeDuckId);
+  
+  // Get dynamic icon for active duck if available in speech data
+  const currentMood = currentIndex >= 0 && conversation[currentIndex]?.mood;
 
   // --- Landing Screen ---
   if (mode === "landing") {
-  return (
+    return (
       <div className="min-h-screen bg-[#e0f7fa] text-slate-800 font-sans flex items-center justify-center p-4">
         <div className="max-w-6xl w-full bg-white/90 backdrop-blur-xl rounded-4xl shadow-2xl p-8 md:p-12 border-4 border-teal-100 grid grid-cols-1 md:grid-cols-12 gap-12">
           
@@ -229,7 +267,7 @@ export default function Home() {
              <div className="space-y-3">
                <label className="text-xs font-bold text-teal-800 uppercase tracking-widest pl-2">Select Mode</label>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
+                  <button 
                     onClick={() => setMode("chat")}
                     className="group relative overflow-hidden rounded-2xl bg-white hover:bg-teal-600 p-6 transition-all shadow-sm hover:shadow-xl border-2 border-white hover:border-teal-600 text-left"
                   >
@@ -242,7 +280,7 @@ export default function Home() {
                         <p className="text-xs text-slate-500 group-hover:text-teal-100 mt-1">Venting & Emotional Support</p>
                       </div>
                     </div>
-          </button>
+                  </button>
 
                   <button 
                     onClick={() => setMode("debug")}
@@ -280,10 +318,44 @@ export default function Home() {
     );
   }
 
+  // --- Vitals Overlay Component ---
+  const VitalsOverlay = () => {
+    if (!healthMode || !vitals) return null;
+    return (
+      <div className="fixed top-24 right-6 z-40 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-rose-100 animate-in slide-in-from-right duration-500 w-48">
+         <div className="flex items-center gap-2 mb-3 border-b border-rose-100 pb-2">
+            <div className="p-1.5 bg-rose-100 text-rose-500 rounded-lg">
+              <Heart size={16} className="animate-pulse" fill="currentColor" />
+            </div>
+            <span className="text-xs font-bold text-rose-900 uppercase tracking-wider">Live Vitals</span>
+         </div>
+         <div className="space-y-2">
+            <div className="flex justify-between items-end">
+               <span className="text-xs text-slate-500">Heart Rate</span>
+               <span className="text-lg font-black text-slate-700">{vitals.heart_rate_bpm.toFixed(0)} <span className="text-xs font-normal text-slate-400">bpm</span></span>
+            </div>
+            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+               <div className="h-full bg-rose-400 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (vitals.heart_rate_bpm / 120) * 100)}%` }} />
+            </div>
+            
+            <div className="flex justify-between items-end mt-2">
+               <span className="text-xs text-slate-500">Breathing</span>
+               <span className="text-lg font-black text-slate-700">{vitals.breathing_rate_rpm.toFixed(0)} <span className="text-xs font-normal text-slate-400">rpm</span></span>
+            </div>
+            <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+               <div className="h-full bg-teal-400 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (vitals.breathing_rate_rpm / 30) * 100)}%` }} />
+            </div>
+         </div>
+      </div>
+    )
+  }
+
   // --- Debug Mode UI (Technical Theme) ---
   if (mode === "debug") {
      return (
       <div className="min-h-screen bg-[#0f172a] text-slate-200 font-mono selection:bg-indigo-500/30 flex flex-col">
+        <VitalsOverlay />
+        
         {/* Debug Header */}
         <header className="border-b border-slate-800 bg-slate-900/80 p-4 flex items-center justify-between backdrop-blur-md sticky top-0 z-50">
            <div className="flex items-center gap-4">
@@ -299,6 +371,13 @@ export default function Home() {
              </h1>
            </div>
            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setHealthMode(!healthMode)}
+                className={`p-2 rounded transition-colors ${healthMode ? "bg-rose-900/30 text-rose-400 border border-rose-900/50" : "hover:bg-slate-800 text-slate-500"}`}
+                title="Toggle Health Vitals"
+              >
+                <Heart size={16} fill={healthMode ? "currentColor" : "none"} />
+              </button>
               <div className={`flex items-center gap-2 px-3 py-1.5 text-xs border rounded-full ${isLoading ? "bg-yellow-900/20 border-yellow-800 text-yellow-500" : "bg-green-900/20 border-green-800 text-green-500"}`}>
                  <div className={`w-2 h-2 rounded-full ${isLoading ? "bg-yellow-500 animate-pulse" : "bg-green-500"}`} />
                  {isLoading ? "PROCESSING" : "READY"}
@@ -332,7 +411,7 @@ export default function Home() {
                   >
                     {isLoading ? "Analyzing..." : <>Run Analysis <Play size={14} fill="currentColor" /></>}
                   </button>
-            </div>
+              </div>
             </div>
           </div>
 
@@ -348,6 +427,9 @@ export default function Home() {
                 <div className="flex flex-wrap justify-center gap-8 mb-16">
                    {DUCKS.map((duck) => {
                       const isActive = duck.id === activeDuckId;
+                      // Use dynamic mood if active, otherwise static icon
+                      const displayIcon = (isActive && currentMood) ? currentMood : duck.icon;
+                      
                       return (
                         <button 
                            key={duck.id} 
@@ -357,8 +439,8 @@ export default function Home() {
                         >
                            {isActive && <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-indigo-400 text-xs font-bold animate-bounce">SPEAKING</div>}
                            
-                           <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-slate-800 border-2 ${duck.secondaryColor.replace('border-', 'border-')} flex items-center justify-center text-3xl shadow-lg relative`}>
-                              {duck.icon}
+                           <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-slate-800 border-2 ${duck.secondaryColor.replace('border-', 'border-')} flex items-center justify-center text-3xl shadow-lg relative transition-all duration-300`}>
+                              {displayIcon}
                               {/* Audio visualizer simulation */}
                               {isActive && isPlaying && (
                                  <div className="absolute -bottom-2 left-0 right-0 flex justify-center gap-1 h-1">
@@ -407,7 +489,9 @@ export default function Home() {
 
   // --- Chat Mode (Therapy Theme) ---
   return (
-    <div className="min-h-screen bg-[#fffbeb] text-slate-800 font-sans selection:bg-amber-200">
+    <div className="min-h-screen bg-[#fffbeb] text-slate-800 font-sans selection:bg-amber-200 relative">
+      <VitalsOverlay />
+      
       {/* Warm Background Decoration */}
       <div className="fixed top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_120%,#fde68a_0%,transparent_50%)] opacity-50 pointer-events-none" />
       
@@ -424,7 +508,14 @@ export default function Home() {
           </button>
         </div>
         
-        <div className="absolute top-6 right-6 z-50">
+        <div className="absolute top-6 right-6 z-50 flex gap-2">
+           <button 
+              onClick={() => setHealthMode(!healthMode)}
+              className={`p-3 bg-white/60 rounded-full transition-colors ${healthMode ? "text-rose-500 bg-rose-50" : "text-slate-400 hover:bg-white"}`}
+              title="Toggle Vitals"
+           >
+             <Heart size={20} fill={healthMode ? "currentColor" : "none"} />
+           </button>
            <button onClick={resetBackendMemory} title="Clear Session" className="p-3 bg-white/60 hover:bg-rose-50 text-rose-400 rounded-full transition-colors">
              <Trash2 size={20} />
            </button>
@@ -443,6 +534,9 @@ export default function Home() {
         <div className="flex flex-wrap justify-center gap-6 md:gap-10 items-end h-40 mb-4">
           {DUCKS.map((duck) => {
             const isActive = duck.id === activeDuckId;
+            // Use dynamic mood if active, otherwise static icon
+            const displayIcon = (isActive && currentMood) ? currentMood : duck.icon;
+
             return (
               <button 
                 key={duck.id} 
@@ -467,8 +561,8 @@ export default function Home() {
                     transition-colors duration-300
                   `}
                 >
-                  <span className="text-3xl drop-shadow-sm select-none">
-                    {duck.icon}
+                  <span className="text-3xl drop-shadow-sm select-none transition-all duration-300">
+                    {displayIcon}
                   </span>
                 </div>
                 
@@ -533,7 +627,7 @@ export default function Home() {
             </div>
           </div>
         )}
-          
+
         {/* Controls */}
         {isPlaying && (
           <button 
@@ -543,8 +637,8 @@ export default function Home() {
             <RotateCcw size={20} />
             Pause Session
           </button>
-      )}
-    </main>
+        )}
+      </main>
     </div>
   );
 }
