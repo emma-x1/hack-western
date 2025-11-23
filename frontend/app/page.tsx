@@ -29,6 +29,10 @@ interface Vitals {
   timestamp_s: number;
   breathing_rate_rpm: number;
   heart_rate_bpm: number;
+  mood?: string;
+  mood_context?: string;
+  excluded_ducks?: string[];
+  preferred_ducks?: string[];
 }
 
 // --- Data ---
@@ -377,9 +381,27 @@ export default function Home() {
   // --- Vitals Overlay Component ---
   const VitalsOverlay = () => {
     if (!healthMode || !vitals) return null;
+
+    const moodColors = {
+      stressed: 'bg-red-900/50 text-red-300 border-red-700',
+      calm: 'bg-blue-900/50 text-blue-300 border-blue-700',
+      excited: 'bg-yellow-900/50 text-yellow-300 border-yellow-700',
+      neutral: 'bg-slate-800 text-slate-400 border-slate-700'
+    };
+    const mood = vitals.mood || 'neutral';
+    const moodColor = moodColors[mood as keyof typeof moodColors] || moodColors.neutral;
+
     return (
       <div className="fixed top-24 right-6 z-40 bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-amber-500/30 animate-in slide-in-from-right duration-500 w-48 ring-1 ring-black/50">
-         <div className="flex items-center gap-2 mb-3 border-b border-slate-700 pb-2">
+        <div className="mb-3 text-center">
+         <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${moodColor}`}>
+           {mood}
+         </div>
+         {vitals.mood_context && (
+           <p className="text-[10px] text-slate-500 mt-1">{vitals.mood_context}</p>
+         )}
+       </div>
+        <div className="flex items-center gap-2 mb-3 border-b border-slate-700 pb-2">
             <div className="p-1.5 bg-rose-900/50 text-rose-400 rounded-lg">
               <Heart size={16} className="animate-pulse" fill="currentColor" />
             </div>
