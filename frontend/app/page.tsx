@@ -105,7 +105,7 @@ export default function Home() {
     setDisplayedText("");
     
     try {
-      const res = await fetch(`${BACKEND_URL}/chat-text`, {
+      const res = await fetch(`${BACKEND_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -392,23 +392,9 @@ export default function Home() {
     const moodColor = moodColors[mood as keyof typeof moodColors] || moodColors.neutral;
 
     return (
-<<<<<<< HEAD
-      <div className="fixed top-24 right-6 z-40 bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-amber-500/30 animate-in slide-in-from-right duration-500 w-48 ring-1 ring-black/50">
-        <div className="mb-3 text-center">
-         <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${moodColor}`}>
-           {mood}
-         </div>
-         {vitals.mood_context && (
-           <p className="text-[10px] text-slate-500 mt-1">{vitals.mood_context}</p>
-         )}
-       </div>
-        <div className="flex items-center gap-2 mb-3 border-b border-slate-700 pb-2">
-            <div className="p-1.5 bg-rose-900/50 text-rose-400 rounded-lg">
-=======
       <div className="fixed top-24 right-6 z-40 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-rose-100 animate-in slide-in-from-right duration-500 w-48">
          <div className="flex items-center gap-2 mb-3 border-b border-rose-100 pb-2">
             <div className="p-1.5 bg-rose-100 text-rose-500 rounded-lg">
->>>>>>> 2510e61098e0206917e56df1e55695cc970c3b70
               <Heart size={16} className="animate-pulse" fill="currentColor" />
             </div>
             <span className="text-xs font-bold text-rose-900 uppercase tracking-wider">Live Vitals</span>
