@@ -214,7 +214,7 @@ export default function Home() {
 
   // --- Landing Screen ---
   if (mode === "landing") {
-    return (
+  return (
       <div className="min-h-screen bg-[#e0f7fa] text-slate-800 font-sans flex items-center justify-center p-4">
         <div className="max-w-6xl w-full bg-white/90 backdrop-blur-xl rounded-4xl shadow-2xl p-8 md:p-12 border-4 border-teal-100 grid grid-cols-1 md:grid-cols-12 gap-12">
           
@@ -248,7 +248,7 @@ export default function Home() {
              <div className="space-y-3">
                <label className="text-xs font-bold text-teal-800 uppercase tracking-widest pl-2">Select Mode</label>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button 
+          <button
                     onClick={() => setMode("chat")}
                     className="group relative overflow-hidden rounded-2xl bg-white hover:bg-teal-600 p-6 transition-all shadow-sm hover:shadow-xl border-2 border-white hover:border-teal-600 text-left"
                   >
@@ -261,7 +261,7 @@ export default function Home() {
                         <p className="text-xs text-slate-500 group-hover:text-teal-100 mt-1">Venting & Emotional Support</p>
                       </div>
                     </div>
-                  </button>
+          </button>
 
                   <button 
                     onClick={() => setMode("debug")}
@@ -282,8 +282,16 @@ export default function Home() {
 
              <div className="pt-4 flex items-center justify-between text-xs text-teal-600/60 font-medium px-2">
                 <span>v1.0.0 • Hack Western</span>
-                <span>Powered by Gemini & ElevenLabs</span>
-             </div>
+                <a 
+                  href="https://en.wikipedia.org/wiki/Rubber_duck_debugging" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 hover:text-teal-800 transition-colors"
+                >
+                  <span>Inspired by Rubber Ducking</span>
+                  <HelpCircle size={12} />
+                </a>
+              </div>
 
           </div>
         </div>
@@ -304,6 +312,9 @@ export default function Home() {
              <h1 className="font-bold text-indigo-400 flex items-center gap-2 text-sm md:text-base tracking-wider">
                <Code size={18} /> 
                RUBBER_DUCK_DEBUGGER v2.0
+               <a href="https://en.wikipedia.org/wiki/Rubber_duck_debugging" target="_blank" rel="noopener noreferrer" title="The concept that started it all" className="opacity-50 hover:opacity-100 transition-opacity">
+                 <HelpCircle size={14} />
+               </a>
              </h1>
            </div>
            <div className="flex items-center gap-3">
@@ -340,7 +351,7 @@ export default function Home() {
                   >
                     {isLoading ? "Analyzing..." : <>Run Analysis <Play size={14} fill="currentColor" /></>}
                   </button>
-              </div>
+            </div>
             </div>
           </div>
 
@@ -357,7 +368,12 @@ export default function Home() {
                    {DUCKS.map((duck) => {
                       const isActive = duck.id === activeDuckId;
                       return (
-                        <div key={duck.id} className={`group relative transition-all duration-500 ${isActive ? "scale-110 -translate-y-2 opacity-100 grayscale-0" : "opacity-40 grayscale scale-95"}`}>
+                        <button 
+                           key={duck.id} 
+                           onClick={() => pokeDuck(duck.id)}
+                           disabled={isLoading || isPlaying}
+                           className={`group relative transition-all duration-500 cursor-pointer ${isActive ? "scale-110 -translate-y-2 opacity-100 grayscale-0" : "opacity-40 grayscale scale-95 hover:opacity-80 hover:grayscale-0 hover:scale-100"}`}
+                        >
                            {isActive && <div className="absolute -top-10 left-1/2 -translate-x-1/2 text-indigo-400 text-xs font-bold animate-bounce">SPEAKING</div>}
                            
                            <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-slate-800 border-2 ${duck.secondaryColor.replace('border-', 'border-')} flex items-center justify-center text-3xl shadow-lg relative`}>
@@ -375,7 +391,7 @@ export default function Home() {
                               <div className={`text-xs font-bold uppercase tracking-wider ${isActive ? "text-indigo-300" : "text-slate-600"}`}>{duck.name}</div>
                               <div className="text-[10px] text-slate-600">{duck.personality}</div>
                            </div>
-                        </div>
+                        </button>
                       )
                    })}
                 </div>
@@ -394,7 +410,8 @@ export default function Home() {
                       </div>
                    ) : (
                       <div className="text-center text-slate-700 text-sm font-mono uppercase tracking-widest">
-                         System Idle. Waiting for code input...
+                         System Idle. Waiting for code input... <br/>
+                         <span className="text-xs opacity-50">(Click a duck to ping directly)</span>
                       </div>
                    )}
                 </div>
@@ -450,10 +467,12 @@ export default function Home() {
           {DUCKS.map((duck) => {
             const isActive = duck.id === activeDuckId;
             return (
-              <div 
-                key={duck.id}
+              <button 
+                key={duck.id} 
+                onClick={() => pokeDuck(duck.id)}
+                disabled={isLoading || isPlaying}
                 className={`
-                  relative transition-all duration-700 ease-out flex flex-col items-center
+                  relative transition-all duration-700 ease-out flex flex-col items-center cursor-pointer
                   ${isActive ? "scale-125 -translate-y-6 z-20" : "scale-95 opacity-60 grayscale-[0.2] hover:grayscale-0 hover:opacity-100 hover:scale-100"}
                 `}
               >
@@ -481,7 +500,7 @@ export default function Home() {
                 `}>
                   {duck.name}
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -503,8 +522,8 @@ export default function Home() {
           ) : (
             <div className="text-slate-400 italic font-medium">
               {isLoading 
-                ? <div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" /><span>Consulting the council...</span></div>
-                : (currentIndex === -1 ? "Share what's on your mind..." : "Conversation paused.")}
+                ? <div className="flex flex-col items-center gap-3"><div className="w-8 h-8 border-4 border-amber-200 border-t-amber-500 rounded-full animate-spin" /><span>Consulting the ducks...</span></div>
+                : (currentIndex === -1 ? "Share what's on your mind... (or tap a duck)" : "Conversation paused.")}
             </div>
           )}
           
@@ -557,7 +576,7 @@ export default function Home() {
             </div>
           </div>
         )}
-
+          
         {/* Controls */}
         {isPlaying && (
           <button 
@@ -567,8 +586,8 @@ export default function Home() {
             <RotateCcw size={20} />
             Pause Session
           </button>
-        )}
-      </main>
+      )}
+    </main>
     </div>
   );
 }
