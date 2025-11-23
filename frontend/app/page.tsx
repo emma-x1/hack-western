@@ -392,23 +392,9 @@ export default function Home() {
     const moodColor = moodColors[mood as keyof typeof moodColors] || moodColors.neutral;
 
     return (
-<<<<<<< HEAD
-      <div className="fixed top-24 right-6 z-40 bg-slate-900/90 backdrop-blur-md p-4 rounded-2xl shadow-2xl border border-amber-500/30 animate-in slide-in-from-right duration-500 w-48 ring-1 ring-black/50">
-        <div className="mb-3 text-center">
-         <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${moodColor}`}>
-           {mood}
-         </div>
-         {vitals.mood_context && (
-           <p className="text-[10px] text-slate-500 mt-1">{vitals.mood_context}</p>
-         )}
-       </div>
-        <div className="flex items-center gap-2 mb-3 border-b border-slate-700 pb-2">
-            <div className="p-1.5 bg-rose-900/50 text-rose-400 rounded-lg">
-=======
       <div className="fixed top-24 right-6 z-40 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border-2 border-rose-100 animate-in slide-in-from-right duration-500 w-48">
          <div className="flex items-center gap-2 mb-3 border-b border-rose-100 pb-2">
             <div className="p-1.5 bg-rose-100 text-rose-500 rounded-lg">
->>>>>>> 2510e61098e0206917e56df1e55695cc970c3b70
               <Heart size={16} className="animate-pulse" fill="currentColor" />
             </div>
             <span className="text-xs font-bold text-rose-900 uppercase tracking-wider">Live Vitals</span>
@@ -640,6 +626,23 @@ export default function Home() {
           <p className="text-yellow-200/90 font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">
             Take a deep breath. We're listening.
           </p>
+          {vitals && vitals.mood && (
+            <div className="mt-3 flex items-center gap-3 bg-amber-900/20 backdrop-blur-sm px-4 py-2 rounded-full border border-amber-700/30">
+              <div className="flex items-center gap-2 text-amber-200/80 text-sm">
+                <Heart size={14} className="text-rose-400" fill="currentColor" />
+                <span>{vitals.heart_rate_bpm?.toFixed(0) || '--'} bpm</span>
+              </div>
+              <div className="w-px h-4 bg-amber-700/50" />
+              <div className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
+                vitals.mood === 'stressed' ? 'bg-red-900/50 text-red-300' :
+                vitals.mood === 'calm' ? 'bg-blue-900/50 text-blue-300' :
+                vitals.mood === 'excited' ? 'bg-yellow-900/50 text-yellow-300' :
+                'bg-slate-800/50 text-slate-400'
+              }`}>
+                {vitals.mood}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Ducks Container - Softer Look */}
