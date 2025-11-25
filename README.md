@@ -1,4 +1,3 @@
-TODO:
 # The Quack Council 🦆
 
 **Hack Western '25 Project**
