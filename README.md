@@ -1,7 +1,6 @@
 # The Quack Council 🦆
 
-**Hack Western '25 Project**
-*Winner of MLH's Best Use of ElevenLabs Award*
+**Winner of Hack Western '25 MLH's Best Use of ElevenLabs Award 🎉**
 
 ## 🎙️ What is this?
 The Quack Council is an interactive AI-powered support group ... composed entirely of ducks. 
